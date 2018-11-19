@@ -10,6 +10,7 @@ import prometheus_client
 
 import tornado
 from tornado import web
+from kubernetes import config as kube_config, client as kube_client
 
 from . import Version
 from .Apps import Apps
@@ -88,6 +89,26 @@ class Service:
         logger.log_raw('info', 'Shutdown complete!')
 
     @staticmethod
+    @main.command()
+    def dev_setup():
+        kube_config.load_kube_config()
+        kube_config_inst = kube_config.kube_config.Configuration()
+
+        # CLUSTER_HOST
+        click.echo(f"CLUSTER_HOST={kube_config_inst.host}")
+
+        # CLUSTER_CERT
+        cert_file = open(kube_config_inst.cert_file, "r")
+        cert = cert_file.read().replace("\n", "\\n")
+        click.echo(f"CLUSTER_CERT={cert}")
+
+        # CLUSTER_AUTH_TOKEN
+        v1Client = kube_client.CoreV1Api()
+        ret = v1Client.list_namespaced_secret(
+            'default', pretty='true')
+        token = ret.items[0].data.get('token')
+        click.echo(f"CLUSTER_AUTH_TOKEN={token}")
+
     async def init_wrapper(sentry_dsn: str, release: str):
         try:
             await Apps.init_all(sentry_dsn, release, config, logger)
