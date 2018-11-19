@@ -38,7 +38,8 @@ setup(
         'storyscript==0.7.1',
         'ujson==1.35',
         'certifi>=2018.8.24',
-        'psycopg2==2.7.5'
+        'psycopg2==2.7.5',
+        'kubernetes==8.0.0'
     ],
     classifiers=[
         'Environment :: Console',
