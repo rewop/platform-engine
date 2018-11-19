@@ -11,6 +11,7 @@ import prometheus_client
 import tornado
 from tornado import web
 from kubernetes import config as kube_config, client as kube_client
+import subprocess
 
 from . import Version
 from .Apps import Apps
@@ -91,23 +92,68 @@ class Service:
     @staticmethod
     @main.command()
     def dev_setup():
+        """Sets up development environment to run platform engine.
+        It creates a .env file with the value to be ued to run the engine.
+        This command assumes that kubectl is installed and connected to
+        a cluster and that postgres is installed and reachable through
+        localhost:5432
+        """
+
+        # load configuration from default
         kube_config.load_kube_config()
         kube_config_inst = kube_config.kube_config.Configuration()
 
+        # Create resources needed in the cluster
+        # @todo these resources will be created in the namespace default
+        # Should we also create a namespace for the engine?
+        kube_resources = [
+            'service_accounts/engine.yaml',
+            'secrets/engine.yaml',
+            'role_bindings/engine.yaml',
+        ]
+        command = ('curl -s '
+                   'https://raw.githubusercontent.com/asyncy/stack-kubernetes/'
+                   'master/kubernetes-pre-init/{resource}'
+                   ' | kubectl apply -f -')
+        for resource in kube_resources:
+            click.echo(f'creating or updating resource {resource}')
+            resp = subprocess.run(command.format(
+                resource=resource), shell=True)
+            resp.check_returncode()
+
         # CLUSTER_HOST
-        click.echo(f"CLUSTER_HOST={kube_config_inst.host}")
+        host = kube_config_inst.host
 
         # CLUSTER_CERT
         cert_file = open(kube_config_inst.cert_file, "r")
         cert = cert_file.read().replace("\n", "\\n")
-        click.echo(f"CLUSTER_CERT={cert}")
 
         # CLUSTER_AUTH_TOKEN
         v1Client = kube_client.CoreV1Api()
-        ret = v1Client.list_namespaced_secret(
+        res = v1Client.list_namespaced_secret(
             'default', pretty='true')
-        token = ret.items[0].data.get('token')
-        click.echo(f"CLUSTER_AUTH_TOKEN={token}")
+        secret = next(x for x in res.items
+                      if x.metadata.annotations
+                      .get('kubernetes.io/service-account.name') == 'engine')
+        token = secret.data.get('token')
+
+        # POSTGRES
+        # @todo we could parametrize these or adjust the
+        # defaults in config.py to use 'asyncy' db instead of
+        # 'postgres'
+        postgres_options = ('options=--search_path='
+                            'app_public,app_hidden,app_private,public '
+                            'dbname=asyncy '
+                            'user=postgres')
+
+        env_file = open('.env', 'w')
+        env_file.write(f'CLUSTER_HOST={host}\m')
+        env_file.write(f'CLUSTER_CERT={cert}\n')
+        env_file.write(f'CLUSTER_AUTH_TOKEN={token}\n')
+        env_file.write(f'POSTGRES={postgres_options}\n')
+        env_file.write(f'LOGGER_LEVEL=debug\n')
+
+        env_file.close()
 
     async def init_wrapper(sentry_dsn: str, release: str):
         try:
