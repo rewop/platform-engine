@@ -173,7 +173,8 @@ class Service:
                             'user=postgres '
                             f'host={psql_host} '
                             f'port={psql_port} ')
-
+        
+        # write file 
         env_file.write(f'CLUSTER_HOST={host}\m')
         env_file.write(f'CLUSTER_CERT={cert}\n')
         env_file.write(f'CLUSTER_AUTH_TOKEN={token}\n')
