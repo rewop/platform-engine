@@ -9,7 +9,6 @@ import click
 import prometheus_client
 
 import tornado
-from tornado import web
 from kubernetes import config as kube_config, client as kube_client
 import subprocess
 
@@ -172,7 +171,7 @@ class Service:
                             f'host={psql_host} '
                             f'port={psql_port} ')
 
-        env_file.write(f'CLUSTER_HOST={host}\m')
+        env_file.write(f'CLUSTER_HOST={host}\n')
         env_file.write(f'CLUSTER_CERT={cert}\n')
         env_file.write(f'CLUSTER_AUTH_TOKEN={token}\n')
         env_file.write(f'POSTGRES={postgres_options}\n')
