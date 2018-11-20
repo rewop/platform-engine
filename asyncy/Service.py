@@ -102,6 +102,15 @@ class Service:
         It creates a .env file with the value to be ued to run the engine.
         """
 
+        from shutil import which
+
+        # Make sure kubectl is installed
+        if which('kubectl') is None:
+            print(('Missing kubectl cli. Follow '
+                   'https://kubernetes.io/docs/tasks/tools/install-kubectl '
+                   'to install it first.'), file=sys.stderr)
+            exit(1)
+
         # load configuration from default
         kube_config.load_kube_config()
         kube_config_inst = kube_config.kube_config.Configuration()
