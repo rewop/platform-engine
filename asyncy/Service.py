@@ -91,12 +91,15 @@ class Service:
 
     @staticmethod
     @main.command()
-    def dev_setup():
+    @click.option('--psql-host',
+                  help='Hostname to connect to postgresql',
+                  default='localhost')
+    @click.option('--psql-port',
+                  help='Hostname to connect to postgresql',
+                  default='5432')
+    def dev_setup(psql_host, psql_port):
         """Sets up development environment to run platform engine.
         It creates a .env file with the value to be ued to run the engine.
-        This command assumes that kubectl is installed and connected to
-        a cluster and that postgres is installed and reachable through
-        localhost:5432
         """
 
         # load configuration from default
@@ -144,7 +147,9 @@ class Service:
         postgres_options = ('options=--search_path='
                             'app_public,app_hidden,app_private,public '
                             'dbname=asyncy '
-                            'user=postgres')
+                            'user=postgres '
+                            f'host={psql_host} '
+                            f'port={psql_port} ')
 
         env_file = open('.env', 'w')
         env_file.write(f'CLUSTER_HOST={host}\m')
