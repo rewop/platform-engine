@@ -112,7 +112,7 @@ class Service:
                    'to install it first.'), file=sys.stderr)
             exit(1)
 
-        # load configuration from default
+        # Load configuration from default
         kube_config.load_kube_config()
         kube_config_inst = kube_config.kube_config.Configuration()
 
@@ -123,20 +123,18 @@ class Service:
 
         v1Client = kube_client.CoreV1Api()
 
-        # create namespace
+        # Create namespace
         md = kube_client.V1ObjectMeta(name='asyncy-system')
         ns = kube_client.V1Namespace(
             api_version='v1', kind='Namespace', metadata=md)
         try:
             v1Client.create_namespace(ns)
         except kube_client.rest.ApiException as e:
-            # check if namespace already exists
+            # Check if namespace already exists
             if e.reason != 'Conflict':
                 raise(e)
 
         # Create resources needed in the cluster
-        # @todo these resources will be created in the namespace default
-        # Should we also create a namespace for the engine?
         kube_resources = [
             'service_accounts/engine.yaml',
             'secrets/engine.yaml',
@@ -165,7 +163,7 @@ class Service:
         token = secret.data.get('token')
 
         # POSTGRES
-        # defaults in config.py to use 'asyncy' db instead of
+        # Defaults in config.py to use 'asyncy' db instead of
         # 'postgres'
         postgres_options = ('options=--search_path='
                             'app_public,app_hidden,app_private,public '
@@ -173,8 +171,7 @@ class Service:
                             'user=postgres '
                             f'host={psql_host} '
                             f'port={psql_port} ')
-        
-        # write file 
+
         env_file.write(f'CLUSTER_HOST={host}\m')
         env_file.write(f'CLUSTER_CERT={cert}\n')
         env_file.write(f'CLUSTER_AUTH_TOKEN={token}\n')
