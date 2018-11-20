@@ -116,6 +116,11 @@ class Service:
         kube_config.load_kube_config()
         kube_config_inst = kube_config.kube_config.Configuration()
 
+        # CLUSTER_HOST
+        host = kube_config_inst.host
+        click.echo(f'ATTENTION: resources will be create in cluster at {host}')
+        click.confirm('Do you want to continue?', abort=True)
+
         v1Client = kube_client.CoreV1Api()
 
         # create namespace
@@ -146,9 +151,6 @@ class Service:
             resp = subprocess.run(command.format(
                 resource=resource), shell=True)
             resp.check_returncode()
-
-        # CLUSTER_HOST
-        host = kube_config_inst.host
 
         # CLUSTER_CERT
         cert_file = open(kube_config_inst.cert_file, "r")
