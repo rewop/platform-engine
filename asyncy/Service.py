@@ -97,7 +97,8 @@ class Service:
     @click.option('--psql-port',
                   help='Hostname to connect to postgresql',
                   default='5432')
-    def dev_setup(psql_host, psql_port):
+    @click.argument('env_file', type=click.File('w'), default='.env')
+    def dev_setup(psql_host, psql_port, env_file):
         """Sets up development environment to run platform engine.
         It creates a .env file with the value to be ued to run the engine.
         """
@@ -162,7 +163,6 @@ class Service:
         token = secret.data.get('token')
 
         # POSTGRES
-        # @todo we could parametrize these or adjust the
         # defaults in config.py to use 'asyncy' db instead of
         # 'postgres'
         postgres_options = ('options=--search_path='
@@ -172,7 +172,6 @@ class Service:
                             f'host={psql_host} '
                             f'port={psql_port} ')
 
-        env_file = open('.env', 'w')
         env_file.write(f'CLUSTER_HOST={host}\m')
         env_file.write(f'CLUSTER_CERT={cert}\n')
         env_file.write(f'CLUSTER_AUTH_TOKEN={token}\n')
