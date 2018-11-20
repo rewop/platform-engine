@@ -106,6 +106,19 @@ class Service:
         kube_config.load_kube_config()
         kube_config_inst = kube_config.kube_config.Configuration()
 
+        v1Client = kube_client.CoreV1Api()
+
+        # create namespace
+        md = kube_client.V1ObjectMeta(name='asyncy-system')
+        ns = kube_client.V1Namespace(
+            api_version='v1', kind='Namespace', metadata=md)
+        try:
+            v1Client.create_namespace(ns)
+        except kube_client.rest.ApiException as e:
+            # check if namespace already exists
+            if e.reason != 'Conflict':
+                raise(e)
+
         # Create resources needed in the cluster
         # @todo these resources will be created in the namespace default
         # Should we also create a namespace for the engine?
@@ -117,7 +130,7 @@ class Service:
         command = ('curl -s '
                    'https://raw.githubusercontent.com/asyncy/stack-kubernetes/'
                    'master/kubernetes-pre-init/{resource}'
-                   ' | kubectl apply -f -')
+                   ' | kubectl apply --namespace asyncy-system -f -')
         for resource in kube_resources:
             click.echo(f'creating or updating resource {resource}')
             resp = subprocess.run(command.format(
@@ -132,7 +145,6 @@ class Service:
         cert = cert_file.read().replace("\n", "\\n")
 
         # CLUSTER_AUTH_TOKEN
-        v1Client = kube_client.CoreV1Api()
         res = v1Client.list_namespaced_secret(
             'default', pretty='true')
         secret = next(x for x in res.items
