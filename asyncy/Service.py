@@ -98,7 +98,8 @@ class Service:
                   default='5432')
     @click.argument('env_file', type=click.File('w'), default='.env')
     def dev_setup(psql_host, psql_port, env_file):
-        """Sets up development environment to run platform engine.
+        """
+        Sets up development environment to run platform engine.
         It creates a .env file with the value to be ued to run the engine.
         """
 
