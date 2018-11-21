@@ -100,7 +100,7 @@ class Service:
     def dev_setup(psql_host, psql_port, env_file):
         """
         Sets up development environment to run platform engine.
-        It creates a .env file with the value to be ued to run the engine.
+        It creates a .env file with the value to be used to run the engine.
         """
 
         from shutil import which
