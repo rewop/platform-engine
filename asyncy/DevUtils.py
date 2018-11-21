@@ -1,7 +1,9 @@
-import sys
 import subprocess
-from kubernetes import config as kube_config, client as kube_client
+import sys
+
 import click
+
+from kubernetes import client as kube_client, config as kube_config
 
 
 def make_env_file(psql_host, psql_port, env_file):
@@ -28,14 +30,14 @@ def make_env_file(psql_host, psql_port, env_file):
     click.echo(f'ATTENTION: resources will be created in cluster at {host}')
     click.confirm('Do you want to continue?', abort=True)
 
-    v1Client = kube_client.CoreV1Api()
+    v1_client = kube_client.CoreV1Api()
 
     # Create namespace
     md = kube_client.V1ObjectMeta(name='asyncy-system')
     ns = kube_client.V1Namespace(
         api_version='v1', kind='Namespace', metadata=md)
     try:
-        v1Client.create_namespace(ns)
+        v1_client.create_namespace(ns)
     except kube_client.rest.ApiException as e:
         # Check if namespace already exists
         if e.reason != 'Conflict':
@@ -62,7 +64,7 @@ def make_env_file(psql_host, psql_port, env_file):
     cert = cert_file.read().replace('\n', '\\n')
 
     # CLUSTER_AUTH_TOKEN
-    res = v1Client.list_namespaced_secret(
+    res = v1_client.list_namespaced_secret(
         'default', pretty='true')
     secret = next(x for x in res.items
                   if x.metadata.annotations
