@@ -151,7 +151,7 @@ class Service:
             resp.check_returncode()
 
         # CLUSTER_CERT
-        cert_file = open(kube_config_inst.cert_file, "r")
+        cert_file = open(kube_config_inst.cert_file, 'r')
         cert = cert_file.read().replace("\n", "\\n")
 
         # CLUSTER_AUTH_TOKEN
