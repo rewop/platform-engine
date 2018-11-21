@@ -152,7 +152,7 @@ class Service:
 
         # CLUSTER_CERT
         cert_file = open(kube_config_inst.cert_file, 'r')
-        cert = cert_file.read().replace("\n", "\\n")
+        cert = cert_file.read().replace('\n', '\\n')
 
         # CLUSTER_AUTH_TOKEN
         res = v1Client.list_namespaced_secret(
